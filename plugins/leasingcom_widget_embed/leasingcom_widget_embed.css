@@ -1,0 +1,46 @@
+/* CSS for admin interface only */
+.leasingcom-widget {
+  background-color: #fff;
+  border: 2px solid #999;
+  cursor: default;
+  display: none;
+  position: absolute;
+  padding: 10px;
+  z-index: 200;
+}
+
+.leasingcom-widget h2 {
+  text-align: center;
+  font-size: 18px;
+  padding: 5px 0 15px;
+}
+
+.leasingcom-widget input,
+.leasingcom-widget textarea {
+  margin: 5px 0 10px;
+  box-sizing: border-box;
+}
+
+.leasingcom-widget .form-textfield-wrapper input {
+  width: 100%;
+  clear: both;
+}
+
+.leasingcom-widget ul {
+  margin-bottom: 10px;
+}
+
+.leasingcom-widget li {
+  list-style: disc;
+  margin-left: 30px;
+}
+
+.leasingcom-widget .help-text {
+  margin-right: 35px;
+}
+
+.leasingcom-widget .inner-wrapper {
+  display: inline-block;
+  vertical-align: top;
+  width: 45%;
+}

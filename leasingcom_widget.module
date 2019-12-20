@@ -1,0 +1,112 @@
+<?php
+
+/**
+ * @file
+ * Main Wywisyg plugin module file.
+ */
+define("LEASINGCOM_PLACEHOLDER_PATTERN_INNER", 'wysiwyg_leasingcom-widget-embed_plugin');
+define("LEASINGCOM_PLACEHOLDER_PATTERN", '<!--' . LEASINGCOM_PLACEHOLDER_PATTERN_INNER . '-->');
+
+/**
+ * Implements hook_wysiwyg_include_directory().
+ */
+function leasingcom_widget_wysiwyg_include_directory($type) {
+  return $type;
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function leasingcom_widget_page_alter(&$page) {
+  drupal_add_css(drupal_get_path('module', 'leasingcom_widget') . '/plugins/leasingcom_widget_embed/leasingcom_widget_embed.css');
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function leasingcom_widget_node_view($node) {
+  // Early return.
+  $field_name = variable_get('leasingcom_widget_field_name', 'nonexistent_field');
+  if (empty($node->{$field_name})) {
+    return;
+  }
+
+  // Look up the fields to act on.
+  foreach (element_children($node->content) as $field_id) {
+    if (empty($node->content[$field_id]['#items'])) {
+      continue;
+    }
+
+    foreach ($node->content[$field_id]['#items'] as $key => $field) {
+      // Look for any field with a text format.
+      if (empty($node->content[$field_id][$key]['#markup'])) {
+        continue;
+      }
+
+      $field_markup = $node->content[$field_id][$key]['#markup'];
+
+      // First check if we should auto-populate.
+      if (variable_get('leasingcom_widget_auto_populate', 0) && _leasingcom_widget_detect_placeholders($field_markup) === FALSE) {
+        $paragraph_number = variable_get('leasingcom_widget_auto_populate_paragraph_number');
+
+        // Convert to an array counter.
+        $paragraph_number--;
+
+        if ($paragraph_number == 0) {
+          // If it's the first paragraph, just insert it at the very start.
+          $field_markup = LEASINGCOM_PLACEHOLDER_PATTERN . $field_markup;
+        }
+        else {
+          $domdoc = filter_dom_load($node->content[$field_id][$key]['#markup']);
+
+          // Check for the element before where we want to insert.
+          $paragraph_number--;
+
+          $paragraphs = $domdoc->getElementsByTagName('p');
+
+          if ($paragraph_element = $paragraphs->item($paragraph_number)) {
+            // Generate new placeholder element.
+            $comment = $domdoc->createComment(LEASINGCOM_PLACEHOLDER_PATTERN_INNER);
+            $paragraph_element->parentNode->insertBefore($comment, $paragraph_element->nextSibling);
+
+            $field_markup = filter_dom_serialize($domdoc);
+          }
+        }
+      }
+
+      if (isset($field['format']) && _leasingcom_widget_detect_placeholders($field_markup) !== FALSE) {
+
+        $replacement = _leasingcom_widget_get_replacement($node);
+        $node->content[$field_id][$key]['#markup'] = _leasingcom_widget_replace_pattern($field_markup, $replacement);
+      }
+    }
+  }
+}
+
+/**
+ * Detect placeholders for "See related" content.
+ */
+function _leasingcom_widget_detect_placeholders($markup) {
+  return strpos($markup, LEASINGCOM_PLACEHOLDER_PATTERN);
+}
+
+/**
+ * Replace placeholder with prepared replacement value string.
+ */
+function _leasingcom_widget_replace_pattern($field, $replacement) {
+  return str_replace(LEASINGCOM_PLACEHOLDER_PATTERN, $replacement, $field);
+}
+
+/**
+ * Get the "See related" rendered field value.
+ */
+function _leasingcom_widget_get_replacement($node) {
+  static $replacement = '';
+
+  if (empty($replacement) && $field_name = variable_get('leasingcom_widget_field_name')) {
+    $replacement = field_view_field('node', $node, $field_name);
+    $replacement = render($replacement);
+  }
+
+  return $replacement;
+}

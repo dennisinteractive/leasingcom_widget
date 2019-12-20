@@ -1,0 +1,4 @@
+name = Leasing.com widget
+description = Plugin to Place the widget Leasing.com within body.
+core = 7.x
+dependencies[] = wysiwyg
