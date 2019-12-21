@@ -42,14 +42,14 @@
           var permitted = 'Content required\n';
 
           if (data_manufacturer.length || data_manufacturerranges.length) {
-            if (data_manufacturer === '') {
+            /*if (data_manufacturer === '') {
               jQuery('#edit-data-manufacturer').val(permitted);
               return;
             }
             if (data_manufacturerranges === '') {
               jQuery('#edit-data-manufacturerranges').val(permitted);
               return;
-            }
+            }*/
 
             var values = Drupal.wysiwyg.plugins['leasingcom_widget_embed']._getFormValues(settings);
 
@@ -59,9 +59,13 @@
             //Drupal.wysiwyg.instances[instanceId].insert(placeholder);
             /*var content = '<!--leasingcom_widget_embed_plugin-->';
             Drupal.wysiwyg.instances[instanceId].insert(content);*/
-            if (data.format == 'html') {
-              var content = '<img src="' + settings.path + '/images/leasingcom_widget_icon.png" width="50px" alt="&lt;--leasingcom_widget_embed_plugin--&gt;" title="&lt;--leasingcom_widget_embed_plugin:data_manufacturer" + values.data_manufacturer + ":data_manufacturer_ranges:" + values.data_manufacturer_ranges + "--&gt;" class="wysiwyg_plugin_see-related drupal-content" />';
-            }
+            //if (data.format == 'html') {
+              var tag_value = "leasingcom_widget_embed_plugin-data_manufacturer:" + values.data_manufacturer + "-data_manufacturer_ranges:" + values.data_manufacturer_ranges;
+              var content = '<img src="' + settings.path + '/images/leasingcom_widget_icon.png" width="50px" alt="' + tag_value + '" title="' + tag_value + '" class="wysiwyg_plugin_see-related drupal-content" />';
+            //}
+            //else {
+              //var content = '<!--leasingcom_widget_embed_plugin-->';
+            //}
             if (typeof content != 'undefined') {
               Drupal.wysiwyg.instances[instanceId].insert(content);
             }
@@ -95,23 +99,12 @@
       }
 
       this.show_popup(data, settings, instanceId);
-
-
-      /*if (data.format == 'html') {
-        var content = this._getPlaceholder(settings);
-      }
-      else {
-        var content = '<!--leasingcom_widget_embed_plugin-->';
-      }
-      if (typeof content != 'undefined') {
-        Drupal.wysiwyg.instances[instanceId].insert(content);
-      }*/
     },
     /**
      * Replace all <!--leasingcom_widget_embed_plugin--> tags with the icon.
      */
     attach: function(content, settings, instanceId) {
-      content = content.replace(/<!--leasingcom_widget_embed_plugin-->/g, this._getPlaceholder(settings));
+      content = content.replace(/<!--leasingcom_widget_embed_plugin.*-->/g, this._getPlaceholder(content, settings));
       return content;
     },
     /**
@@ -120,7 +113,7 @@
     detach: function(content, settings, instanceId) {
       var $content = $('<div>' + content + '</div>');
       $.each($('img.wysiwyg_plugin_see-related', $content), function(i, elem) {
-        elem.parentNode.insertBefore(document.createComment('leasingcom_widget_embed_plugin'), elem);
+        elem.parentNode.insertBefore(document.createComment(elem.getAttribute('alt')), elem);
         elem.parentNode.removeChild(elem);
       });
       return $content.html();
@@ -152,8 +145,9 @@
      *
      * Here we provide an image to visually represent the hidden HTML in the Wysiwyg editor.
      */
-    _getPlaceholder: function(settings) {
-      return '<img src="' + settings.path + '/images/leasingcom_widget_icon.png" width="50px" alt="&lt;--leasingcom_widget_embed_plugin--&gt;" title="&lt;--leasingcom_widget_embed_plugin--&gt;" class="wysiwyg_plugin_see-related drupal-content" />';
+    _getPlaceholder: function(content, settings) {
+      var comment = content.split('<!--leasingcom_widget_embed_plugin-').pop().split('-->')[0];
+      return '<img src="' + settings.path + '/images/leasingcom_widget_icon.png" width="50px" alt="leasingcom_widget_embed_plugin-' + comment + '" title="leasingcom_widget_embed_plugin-' + comment + '" class="wysiwyg_plugin_see-related drupal-content" />';
     }
   };
 

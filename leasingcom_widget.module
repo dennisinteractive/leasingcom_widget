@@ -25,88 +25,37 @@ function leasingcom_widget_page_alter(&$page) {
  * Implements hook_node_view().
  */
 function leasingcom_widget_node_view($node) {
-  // Early return.
-  $field_name = variable_get('leasingcom_widget_field_name', 'nonexistent_field');
-  if (empty($node->{$field_name})) {
-    return;
-  }
-
-  // Look up the fields to act on.
-  foreach (element_children($node->content) as $field_id) {
-    if (empty($node->content[$field_id]['#items'])) {
-      continue;
-    }
-
-    foreach ($node->content[$field_id]['#items'] as $key => $field) {
-      // Look for any field with a text format.
-      if (empty($node->content[$field_id][$key]['#markup'])) {
-        continue;
+  if (node_is_page($node)) {
+    // @todo Do this in a better way using Dom.
+    $leasing_markup = '<div id="leasingdotcom-best-deals" data-cid="0000" data-financeType="Personal" data-vehicleType="Car" [data-manufacturer] [data-manufacturer-ranges]></div>
+<script type="text/javascript" src="https://demo-webapps.leasing.com/best-deals/load"></script>';
+    $body = $node->content['body'][0]['#markup'];
+    if (preg_match('/<!--leasingcom_widget_embed_plugin-(.*?)-->/', $body, $match) == 1) {
+      $params = $match[1];
+      $params = explode('-', $params);
+      $params_array = array();
+      foreach($params as $param) {
+        $explode = explode(':', $param);
+        $params_array[$explode[0]] = $explode[1];
       }
-
-      $field_markup = $node->content[$field_id][$key]['#markup'];
-
-      // First check if we should auto-populate.
-      if (variable_get('leasingcom_widget_auto_populate', 0) && _leasingcom_widget_detect_placeholders($field_markup) === FALSE) {
-        $paragraph_number = variable_get('leasingcom_widget_auto_populate_paragraph_number');
-
-        // Convert to an array counter.
-        $paragraph_number--;
-
-        if ($paragraph_number == 0) {
-          // If it's the first paragraph, just insert it at the very start.
-          $field_markup = LEASINGCOM_PLACEHOLDER_PATTERN . $field_markup;
-        }
-        else {
-          $domdoc = filter_dom_load($node->content[$field_id][$key]['#markup']);
-
-          // Check for the element before where we want to insert.
-          $paragraph_number--;
-
-          $paragraphs = $domdoc->getElementsByTagName('p');
-
-          if ($paragraph_element = $paragraphs->item($paragraph_number)) {
-            // Generate new placeholder element.
-            $comment = $domdoc->createComment(LEASINGCOM_PLACEHOLDER_PATTERN_INNER);
-            $paragraph_element->parentNode->insertBefore($comment, $paragraph_element->nextSibling);
-
-            $field_markup = filter_dom_serialize($domdoc);
-          }
-        }
+      // Data manufacturer.
+      if ($params_array['data_manufacturer'] != 'undefined') {
+        $leasing_markup = str_replace('[data-manufacturer]', 'data-manufacturer="' . $params_array['data_manufacturer'] . '"', $leasing_markup);
       }
-
-      if (isset($field['format']) && _leasingcom_widget_detect_placeholders($field_markup) !== FALSE) {
-
-        $replacement = _leasingcom_widget_get_replacement($node);
-        $node->content[$field_id][$key]['#markup'] = _leasingcom_widget_replace_pattern($field_markup, $replacement);
+      else {
+        $leasing_markup = str_replace('[data-manufacturer]', '', $leasing_markup);
       }
+      // Data manufacturer ranges
+      if ($params_array['data_manufacturer_ranges'] != 'undefined') {
+        $leasing_markup = str_replace('[data-manufacturer-ranges]', 'data-manufacturerRanges="' . $params_array['data_manufacturer_ranges'] . '"', $leasing_markup);
+      }
+      else {
+        $leasing_markup = str_replace('[data-manufacturer-ranges]', '', $leasing_markup);
+      }
+      $full_comment = "<!--leasingcom_widget_embed_plugin-$match[1]-->";
+
+      // Add leasing markup.
+      $node->content['body'][0]['#markup'] = str_replace($full_comment, $leasing_markup, $node->content['body'][0]['#markup']);
     }
   }
-}
-
-/**
- * Detect placeholders for "See related" content.
- */
-function _leasingcom_widget_detect_placeholders($markup) {
-  return strpos($markup, LEASINGCOM_PLACEHOLDER_PATTERN);
-}
-
-/**
- * Replace placeholder with prepared replacement value string.
- */
-function _leasingcom_widget_replace_pattern($field, $replacement) {
-  return str_replace(LEASINGCOM_PLACEHOLDER_PATTERN, $replacement, $field);
-}
-
-/**
- * Get the "See related" rendered field value.
- */
-function _leasingcom_widget_get_replacement($node) {
-  static $replacement = '';
-
-  if (empty($replacement) && $field_name = variable_get('leasingcom_widget_field_name')) {
-    $replacement = field_view_field('node', $node, $field_name);
-    $replacement = render($replacement);
-  }
-
-  return $replacement;
 }
