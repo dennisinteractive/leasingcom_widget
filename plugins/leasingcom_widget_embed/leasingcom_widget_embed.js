@@ -61,7 +61,7 @@
             Drupal.wysiwyg.instances[instanceId].insert(content);*/
             //if (data.format == 'html') {
               var tag_value = "leasingcom_widget_embed_plugin-data_manufacturer:" + values.data_manufacturer + "-data_manufacturer_ranges:" + values.data_manufacturer_ranges;
-              var content = '<img src="' + settings.path + '/images/leasingcom_widget_icon.png" width="50px" alt="' + tag_value + '" title="' + tag_value + '" class="wysiwyg_plugin_see-related drupal-content" />';
+              var content = '<img src="' + settings.path + '/images/leasingcom_widget_icon.png" width="50px" alt="' + tag_value + '" title="' + tag_value + '" class="wysiwyg_plugin_leasingcom drupal-content" />';
             //}
             //else {
               //var content = '<!--leasingcom_widget_embed_plugin-->';
@@ -83,10 +83,10 @@
      * Return whether the passed node belongs to this plugin (note that "node" in this context is a JQuery node, not a Drupal node).
      *
      * We identify code managed by this FOO plugin by giving it the HTML class
-     * 'wysiwyg_plugin_see-related'.
+     * 'wysiwyg_plugin_leasingcom'.
      */
     isNode: function(node) {
-      return ($(node).is('img.wysiwyg_plugin_see-related'));
+      return ($(node).is('img.wysiwyg_plugin_leasingcom'));
     },
     /**
      * Invoke is called when the toolbar button is clicked.
@@ -112,7 +112,7 @@
      */
     detach: function(content, settings, instanceId) {
       var $content = $('<div>' + content + '</div>');
-      $.each($('img.wysiwyg_plugin_see-related', $content), function(i, elem) {
+      $.each($('img.wysiwyg_plugin_leasingcom', $content), function(i, elem) {
         elem.parentNode.insertBefore(document.createComment(elem.getAttribute('alt')), elem);
         elem.parentNode.removeChild(elem);
       });
@@ -147,7 +147,7 @@
      */
     _getPlaceholder: function(content, settings) {
       var comment = content.split('<!--leasingcom_widget_embed_plugin-').pop().split('-->')[0];
-      return '<img src="' + settings.path + '/images/leasingcom_widget_icon.png" width="50px" alt="leasingcom_widget_embed_plugin-' + comment + '" title="leasingcom_widget_embed_plugin-' + comment + '" class="wysiwyg_plugin_see-related drupal-content" />';
+      return '<img src="' + settings.path + '/images/leasingcom_widget_icon.png" width="50px" alt="leasingcom_widget_embed_plugin-' + comment + '" title="leasingcom_widget_embed_plugin-' + comment + '" class="wysiwyg_plugin_leasingcom drupal-content" />';
     }
   };
 
