@@ -29,7 +29,7 @@ function leasingcom_widget_node_view($node) {
     $data_cid = variable_get('leasingcom_data_cid', '0000');
     // @todo Do this in a better way using Dom.
     $leasing_markup = '<div id="leasingdotcom-best-deals" data-cid="' . $data_cid . '" data-financeType="Personal" data-vehicleType="Car" [data-manufacturer] [data-manufacturer-ranges]></div>
-<script type="text/javascript" src="https://demo-webapps.leasing.com/best-deals/load"></script>';
+<script type="text/javascript" src="https://webapps.leasing.com/best-deals/load"></script>';
     $body = $node->content['body'][0]['#markup'];
     if (preg_match('/<!--leasingcom_widget_embed_plugin-(.*?)-->/', $body, $match) == 1) {
       $tag_values = $match[1];
