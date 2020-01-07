@@ -32,12 +32,14 @@ function leasingcom_widget_node_view($node) {
 <script type="text/javascript" src="https://demo-webapps.leasing.com/best-deals/load"></script>';
     $body = $node->content['body'][0]['#markup'];
     if (preg_match('/<!--leasingcom_widget_embed_plugin-(.*?)-->/', $body, $match) == 1) {
-      $params = $match[1];
-      $params = explode('-', $params);
+      $tag_values = $match[1];
       $params_array = array();
-      foreach($params as $param) {
-        $explode = explode(':', $param);
-        $params_array[$explode[0]] = $explode[1];
+      $params = $match[1];
+      if (preg_match('/data_manufacturer:(.*?)-data_manufacturer_ranges:/', $params, $match) == 1) {
+        $params_array['data_manufacturer'] = $match[1];
+      }
+      if (preg_match('/data_manufacturer_ranges:(.*)/',$params, $match) == 1) {
+        $params_array['data_manufacturer_ranges'] = $match[1];
       }
       // Data manufacturer.
       if ($params_array['data_manufacturer'] != 'undefined') {
@@ -53,7 +55,7 @@ function leasingcom_widget_node_view($node) {
       else {
         $leasing_markup = str_replace('[data-manufacturer-ranges]', '', $leasing_markup);
       }
-      $full_comment = "<!--leasingcom_widget_embed_plugin-$match[1]-->";
+      $full_comment = "<!--leasingcom_widget_embed_plugin-$tag_values-->";
 
       // Add leasing markup.
       $node->content['body'][0]['#markup'] = str_replace($full_comment, $leasing_markup, $node->content['body'][0]['#markup']);
